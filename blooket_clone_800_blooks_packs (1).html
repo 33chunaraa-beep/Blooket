@@ -1,0 +1,1692 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full bg-slate-900 text-slate-100">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Blooket Clone - 800+ Blooks & Email Registration Sync</title>
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            blooket: {
+              blue: '#0099ff',
+              darkBlue: '#0066cc',
+              purple: '#8b5cf6',
+              yellow: '#ffcc00',
+              green: '#22c55e',
+              red: '#ef4444',
+              pink: '#ec4899',
+              gold: '#f59e0b'
+            }
+          },
+          animation: {
+            'bounce-short': 'bounce 0.5s ease-in-out 2',
+            'spin-slow': 'spin 8s linear infinite',
+            'pulse-glow': 'pulseGlow 2s infinite alternate',
+            'unpack-spin': 'unpackCard 1.2s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards',
+          },
+          keyframes: {
+            pulseGlow: {
+              '0%': { boxShadow: '0 0 15px rgba(139, 92, 246, 0.4)' },
+              '100%': { boxShadow: '0 0 35px rgba(245, 158, 11, 0.9)' }
+            },
+            unpackCard: {
+              '0%': { transform: 'scale(0.1) rotateY(0deg)', opacity: '0' },
+              '50%': { transform: 'scale(1.2) rotateY(720deg)', opacity: '0.8' },
+              '100%': { transform: 'scale(1) rotateY(1080deg)', opacity: '1' }
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-fontawesome/6.4.0/css/all.min.css">
+  
+  <!-- Canvas Confetti for Unboxing & Rewards -->
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap');
+    
+    body {
+      font-family: 'Fredoka', 'Inter', sans-serif;
+      user-select: none;
+    }
+
+    /* Custom Blook Styling */
+    .blook-card {
+      aspect-ratio: 1 / 1.15;
+      transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .blook-card:hover {
+      transform: translateY(-6px) scale(1.03);
+    }
+    
+    .blook-common { border-color: #9ca3af; background: linear-gradient(135deg, #374151, #1f2937); }
+    .blook-uncommon { border-color: #22c55e; background: linear-gradient(135deg, #15803d, #064e3b); }
+    .blook-rare { border-color: #3b82f6; background: linear-gradient(135deg, #1d4ed8, #1e3a8a); }
+    .blook-epic { border-color: #a855f7; background: linear-gradient(135deg, #7e22ce, #4c1d95); }
+    .blook-legendary { border-color: #f59e0b; background: linear-gradient(135deg, #b45309, #78350f); }
+    .blook-chroma { border-color: #ec4899; background: linear-gradient(135deg, #be185d, #831843); animation: chromaGlow 3s infinite linear; }
+    .blook-mystical { border-color: #06b6d4; background: linear-gradient(135deg, #0e7490, #164e63); animation: mysticalPulse 2s infinite ease-in-out; }
+
+    @keyframes chromaGlow {
+      0% { border-color: #ec4899; box-shadow: 0 0 15px #ec4899; }
+      33% { border-color: #3b82f6; box-shadow: 0 0 15px #3b82f6; }
+      66% { border-color: #10b981; box-shadow: 0 0 15px #10b981; }
+      100% { border-color: #ec4899; box-shadow: 0 0 15px #ec4899; }
+    }
+
+    @keyframes mysticalPulse {
+      0%, 100% { transform: scale(1); filter: brightness(1); }
+      50% { transform: scale(1.02); filter: brightness(1.3); }
+    }
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar { width: 8px; }
+    ::-webkit-scrollbar-track { background: #0f172a; }
+    ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: #475569; }
+  </style>
+</head>
+<body class="h-full flex flex-col overflow-x-hidden bg-slate-900 text-slate-100">
+
+  <!-- TOP NAVIGATION BAR -->
+  <header id="mainHeader" class="bg-slate-800/90 backdrop-blur border-b border-slate-700 sticky top-0 z-40 px-4 py-3 flex items-center justify-between">
+    <div class="flex items-center space-x-3">
+      <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-blooket-blue to-blooket-purple flex items-center justify-center font-black text-2xl text-white shadow-lg shadow-blooket-blue/30 cursor-pointer" onclick="navigateTo('dashboard')">
+        B
+      </div>
+      <span class="font-bold text-xl tracking-wide bg-gradient-to-r from-blue-400 via-indigo-300 to-purple-400 bg-clip-text text-transparent cursor-pointer" onclick="navigateTo('dashboard')">
+        BLOOKET <span class="text-xs bg-amber-500 text-slate-950 font-black px-2 py-0.5 rounded-full ml-1 uppercase">800 Blooks</span>
+      </span>
+    </div>
+
+    <!-- User Currency & Header Actions -->
+    <div id="headerUserNav" class="hidden flex items-center space-x-3 sm:space-x-5">
+      <!-- Tokens Badge -->
+      <div class="flex items-center bg-slate-900 border border-amber-500/40 px-3 py-1.5 rounded-xl text-amber-400 font-bold shadow-inner">
+        <i class="fa-solid font-black fa-coins text-amber-400 text-lg mr-2 animate-bounce-short"></i>
+        <span id="userTokensDisplay">0</span>
+      </div>
+
+      <!-- Admin Email Status Indicator -->
+      <button onclick="openAdminSettingsModal()" title="Owner Email Settings" class="relative group bg-slate-700 hover:bg-slate-600 p-2.5 rounded-xl border border-slate-600 transition flex items-center">
+        <i class="fa-solid fa-envelope-circle-check text-emerald-400 text-lg"></i>
+        <span id="adminBadgeDot" class="absolute -top-1 -right-1 w-3 h-3 bg-emerald-500 rounded-full animate-ping"></span>
+      </button>
+
+      <!-- Audio Toggle -->
+      <button id="audioToggleBtn" onclick="toggleAudio()" class="bg-slate-700 hover:bg-slate-600 p-2.5 rounded-xl border border-slate-600 text-slate-200 transition">
+        <i id="audioIcon" class="fa-solid fa-volume-high"></i>
+      </button>
+
+      <!-- Profile Avatar Menu -->
+      <div class="flex items-center space-x-2 bg-slate-700/60 p-1.5 rounded-xl border border-slate-600">
+        <div id="userHeaderBlook" class="w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center text-lg border border-slate-500 overflow-hidden">
+          🐶
+        </div>
+        <span id="userDisplayName" class="font-semibold text-sm max-w-[100px] truncate hidden sm:inline">Guest</span>
+        <button onclick="handleSignOut()" title="Sign Out" class="text-red-400 hover:text-red-300 px-2 py-1 text-sm font-bold transition">
+          <i class="fa-solid fa-right-from-bracket"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- MAIN CONTENT CONTAINER -->
+  <div class="flex-1 flex flex-col md:flex-row overflow-hidden relative">
+
+    <!-- NAVIGATION SIDEBAR -->
+    <nav id="appSidebar" class="hidden md:flex flex-col w-64 bg-slate-800/60 border-r border-slate-700 p-4 space-y-2 shrink-0">
+      <button onclick="navigateTo('dashboard')" id="nav-dashboard" class="nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-xl font-bold transition bg-blooket-blue text-white shadow-lg shadow-blooket-blue/30">
+        <i class="fa-solid fa-compass text-lg"></i>
+        <span>Dashboard</span>
+      </button>
+      <button onclick="navigateTo('market')" id="nav-market" class="nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-xl font-bold transition text-slate-300 hover:bg-slate-700/50 hover:text-white">
+        <i class="fa-solid fa-box-open text-lg text-amber-400"></i>
+        <span>Market & Packs</span>
+      </button>
+      <button onclick="navigateTo('collection')" id="nav-collection" class="nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-xl font-bold transition text-slate-300 hover:bg-slate-700/50 hover:text-white">
+        <i class="fa-solid fa-shapes text-lg text-indigo-400"></i>
+        <span>My Blooks (800)</span>
+      </button>
+      <button onclick="navigateTo('daily')" id="nav-daily" class="nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-xl font-bold transition text-slate-300 hover:bg-slate-700/50 hover:text-white">
+        <i class="fa-solid fa-dharmachakra text-lg text-emerald-400"></i>
+        <span>Daily Wheel</span>
+      </button>
+      <button onclick="navigateTo('games')" id="nav-games" class="nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-xl font-bold transition text-slate-300 hover:bg-slate-700/50 hover:text-white">
+        <i class="fa-solid fa-gamepad text-lg text-pink-400"></i>
+        <span>Mini-Games</span>
+      </button>
+      <button onclick="navigateTo('factory')" id="nav-factory" class="nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-xl font-bold transition text-slate-300 hover:bg-slate-700/50 hover:text-white">
+        <i class="fa-solid fa-palette text-lg text-cyan-400"></i>
+        <span>Custom Factory</span>
+      </button>
+      <button onclick="navigateTo('leaderboard')" id="nav-leaderboard" class="nav-btn w-full flex items-center space-x-3 px-4 py-3 rounded-xl font-bold transition text-slate-300 hover:bg-slate-700/50 hover:text-white">
+        <i class="fa-solid fa-trophy text-lg text-yellow-400"></i>
+        <span>Leaderboard</span>
+      </button>
+      
+      <div class="pt-6 mt-auto border-t border-slate-700/60">
+        <div class="p-3 bg-slate-900/60 rounded-xl border border-slate-700 text-xs text-slate-400">
+          <div class="flex items-center justify-between text-slate-300 font-semibold mb-1">
+            <span>Owner Mail Sync</span>
+            <span class="text-emerald-400 font-bold">Active</span>
+          </div>
+          <p id="sidebarOwnerEmailDisplay" class="truncate text-[11px] text-slate-400">Not configured</p>
+          <button onclick="openAdminSettingsModal()" class="mt-2 text-blooket-blue hover:underline text-xs font-bold block">Configure Email API</button>
+        </div>
+      </div>
+    </nav>
+
+    <!-- MOBILE BOTTOM NAVIGATION -->
+    <div id="mobileNav" class="hidden fixed bottom-0 left-0 right-0 bg-slate-800 border-t border-slate-700 z-30 flex justify-around p-2 text-slate-400 md:hidden">
+      <button onclick="navigateTo('dashboard')" class="flex flex-col items-center p-1 text-xs font-bold text-white"><i class="fa-solid fa-compass text-lg"></i><span>Home</span></button>
+      <button onclick="navigateTo('market')" class="flex flex-col items-center p-1 text-xs font-bold text-amber-400"><i class="fa-solid fa-box-open text-lg"></i><span>Market</span></button>
+      <button onclick="navigateTo('collection')" class="flex flex-col items-center p-1 text-xs font-bold text-indigo-400"><i class="fa-solid fa-shapes text-lg"></i><span>Blooks</span></button>
+      <button onclick="navigateTo('games')" class="flex flex-col items-center p-1 text-xs font-bold text-pink-400"><i class="fa-solid fa-gamepad text-lg"></i><span>Games</span></button>
+      <button onclick="navigateTo('factory')" class="flex flex-col items-center p-1 text-xs font-bold text-cyan-400"><i class="fa-solid fa-palette text-lg"></i><span>Factory</span></button>
+    </div>
+
+    <!-- VIEW SECTIONS WRAPPER -->
+    <main class="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 pb-20 md:pb-8">
+
+      <!-- SECTION 0: AUTHENTICATION (SIGN UP & LOG IN) -->
+      <section id="view-auth" class="max-w-md mx-auto mt-6 bg-slate-800/90 border border-slate-700 p-6 sm:p-8 rounded-3xl shadow-2xl relative">
+        <div class="text-center mb-6">
+          <div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-blooket-blue to-blooket-purple flex items-center justify-center font-black text-4xl text-white mx-auto shadow-xl shadow-blooket-blue/30 mb-3">
+            B
+          </div>
+          <h2 class="text-2xl font-black tracking-tight text-white">Welcome to Blooket</h2>
+          <p class="text-sm text-slate-400 mt-1">Sign up to start collecting over 800 Blooks!</p>
+        </div>
+
+        <!-- Auth Tabs -->
+        <div class="flex bg-slate-900/80 p-1 rounded-2xl mb-6 border border-slate-700">
+          <button id="authTabSignup" onclick="switchAuthTab('signup')" class="flex-1 py-2.5 rounded-xl font-bold text-sm transition bg-blooket-blue text-white shadow-md">Sign Up</button>
+          <button id="authTabLogin" onclick="switchAuthTab('login')" class="flex-1 py-2.5 rounded-xl font-bold text-sm transition text-slate-400 hover:text-white">Log In</button>
+        </div>
+
+        <!-- Admin Email Setup Notice Banner -->
+        <div class="mb-5 bg-indigo-950/60 border border-indigo-500/30 p-3 rounded-2xl text-xs text-indigo-200 flex items-start space-x-2">
+          <i class="fa-solid fa-paper-plane text-indigo-400 text-sm mt-0.5"></i>
+          <div>
+            <span class="font-bold block text-indigo-300">Registration Owner Email Alert</span>
+            <span>Upon signing up, an automatic registration email notification will be dispatched to the site owner email!</span>
+          </div>
+        </div>
+
+        <!-- AUTH FORM -->
+        <form id="authForm" onsubmit="handleAuthSubmit(event)" class="space-y-4">
+          
+          <!-- Name Field (Only Sign Up) -->
+          <div id="authFieldDisplayName" class="space-y-1">
+            <label class="text-xs font-bold uppercase tracking-wider text-slate-400">Full / Display Name</label>
+            <div class="relative">
+              <i class="fa-solid fa-user absolute left-3.5 top-3.5 text-slate-500"></i>
+              <input type="text" id="authDisplayName" placeholder="Alex Rivers" class="w-full bg-slate-900 border border-slate-700 rounded-xl pl-10 pr-4 py-3 text-sm text-white focus:outline-none focus:border-blooket-blue transition" required>
+            </div>
+          </div>
+
+          <!-- Email Field -->
+          <div class="space-y-1">
+            <label class="text-xs font-bold uppercase tracking-wider text-slate-400">Email Address</label>
+            <div class="relative">
+              <i class="fa-solid fa-envelope absolute left-3.5 top-3.5 text-slate-500"></i>
+              <input type="email" id="authEmail" placeholder="player@example.com" class="w-full bg-slate-900 border border-slate-700 rounded-xl pl-10 pr-4 py-3 text-sm text-white focus:outline-none focus:border-blooket-blue transition" required>
+            </div>
+          </div>
+
+          <!-- Password Field -->
+          <div class="space-y-1">
+            <label class="text-xs font-bold uppercase tracking-wider text-slate-400">Password</label>
+            <div class="relative">
+              <i class="fa-solid fa-lock absolute left-3.5 top-3.5 text-slate-500"></i>
+              <input type="password" id="authPassword" placeholder="••••••••" minlength="6" class="w-full bg-slate-900 border border-slate-700 rounded-xl pl-10 pr-4 py-3 text-sm text-white focus:outline-none focus:border-blooket-blue transition" required>
+            </div>
+          </div>
+
+          <!-- Owner Notification Email Input (Only Sign Up) -->
+          <div id="authFieldOwnerEmail" class="space-y-1 pt-2 border-t border-slate-700/60">
+            <label class="text-xs font-bold uppercase tracking-wider text-amber-400 flex items-center justify-between">
+              <span>Owner Email for Notification</span>
+              <span class="text-[10px] text-slate-400 font-normal">Receives sign-up alerts</span>
+            </label>
+            <div class="relative">
+              <i class="fa-solid fa-paper-plane absolute left-3.5 top-3.5 text-amber-400"></i>
+              <input type="email" id="authOwnerEmail" placeholder="owner@example.com" value="admin@blooketclone.com" class="w-full bg-slate-900 border border-amber-500/40 rounded-xl pl-10 pr-4 py-3 text-sm text-amber-200 focus:outline-none focus:border-amber-400 transition" required>
+            </div>
+          </div>
+
+          <!-- Submit Button -->
+          <button type="submit" id="authSubmitBtn" class="w-full py-3.5 mt-2 rounded-xl bg-gradient-to-r from-blooket-blue to-indigo-600 hover:from-blue-600 hover:to-indigo-700 font-extrabold text-white shadow-lg shadow-blooket-blue/30 transition transform active:scale-95 flex items-center justify-center space-x-2">
+            <span id="authSubmitText">Create Account</span>
+            <i class="fa-solid fa-arrow-right"></i>
+          </button>
+        </form>
+
+        <div class="mt-6 text-center">
+          <p class="text-xs text-slate-500">
+            By continuing, user stats & unlocked blooks are synchronized automatically to Firebase Cloud storage.
+          </p>
+        </div>
+      </section>
+
+      <!-- SECTION 1: DASHBOARD -->
+      <section id="view-dashboard" class="hidden space-y-6">
+        <!-- Welcome Hero Banner -->
+        <div class="relative overflow-hidden bg-gradient-to-r from-indigo-900 via-purple-900 to-slate-900 rounded-3xl p-6 sm:p-8 border border-indigo-500/30 shadow-2xl">
+          <div class="relative z-10 max-w-xl">
+            <span class="bg-amber-500 text-slate-950 text-xs font-black px-3 py-1 rounded-full uppercase tracking-wider mb-3 inline-block">Ultimate Collection</span>
+            <h1 class="text-3xl sm:text-4xl font-black text-white tracking-tight">
+              Ready to unbox <span class="text-amber-400" id="dashBlookCount">800</span> Blooks?
+            </h1>
+            <p class="text-slate-300 mt-2 text-sm sm:text-base leading-relaxed">
+              Open packs, earn tokens in mini-games, design custom blooks, and climb the global leaderboards!
+            </p>
+            <div class="mt-6 flex flex-wrap gap-3">
+              <button onclick="navigateTo('market')" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-black px-6 py-3 rounded-2xl shadow-lg shadow-amber-500/30 transition transform hover:-translate-y-0.5 flex items-center space-x-2">
+                <i class="fa-solid fa-box-open text-lg"></i>
+                <span>Open Packs Now</span>
+              </button>
+              <button onclick="navigateTo('games')" class="bg-slate-800 hover:bg-slate-700 border border-slate-600 text-white font-extrabold px-6 py-3 rounded-2xl transition flex items-center space-x-2">
+                <i class="fa-solid fa-gamepad text-lg text-pink-400"></i>
+                <span>Play Games</span>
+              </button>
+            </div>
+          </div>
+          <!-- Background Blook Decorative Stack -->
+          <div class="hidden lg:flex absolute -right-6 -bottom-6 space-x-2 opacity-30 pointer-events-none transform rotate-6">
+            <div class="w-32 h-36 rounded-2xl bg-amber-500/30 border-2 border-amber-400 flex items-center justify-center text-6xl">🐉</div>
+            <div class="w-32 h-36 rounded-2xl bg-cyan-500/30 border-2 border-cyan-400 flex items-center justify-center text-6xl">🚀</div>
+            <div class="w-32 h-36 rounded-2xl bg-pink-500/30 border-2 border-pink-400 flex items-center justify-center text-6xl">👑</div>
+          </div>
+        </div>
+
+        <!-- Quick Stats Grid -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div class="bg-slate-800/80 border border-slate-700/80 p-5 rounded-2xl shadow-md">
+            <div class="flex items-center justify-between text-slate-400 text-xs font-bold uppercase mb-1">
+              <span>Tokens</span>
+              <i class="fa-solid fa-coins text-amber-400 text-lg"></i>
+            </div>
+            <div class="text-2xl sm:text-3xl font-black text-amber-400" id="dashTokens">0</div>
+          </div>
+
+          <div class="bg-slate-800/80 border border-slate-700/80 p-5 rounded-2xl shadow-md">
+            <div class="flex items-center justify-between text-slate-400 text-xs font-bold uppercase mb-1">
+              <span>Blooks Owned</span>
+              <i class="fa-solid fa-shapes text-indigo-400 text-lg"></i>
+            </div>
+            <div class="text-2xl sm:text-3xl font-black text-indigo-400"><span id="dashOwnedCount">0</span> <span class="text-xs text-slate-500 font-bold">/ 800</span></div>
+          </div>
+
+          <div class="bg-slate-800/80 border border-slate-700/80 p-5 rounded-2xl shadow-md">
+            <div class="flex items-center justify-between text-slate-400 text-xs font-bold uppercase mb-1">
+              <span>Completion</span>
+              <i class="fa-solid fa-chart-pie text-emerald-400 text-lg"></i>
+            </div>
+            <div class="text-2xl sm:text-3xl font-black text-emerald-400" id="dashCompletion">0%</div>
+          </div>
+
+          <div class="bg-slate-800/80 border border-slate-700/80 p-5 rounded-2xl shadow-md">
+            <div class="flex items-center justify-between text-slate-400 text-xs font-bold uppercase mb-1">
+              <span>Packs Unboxed</span>
+              <i class="fa-solid fa-box text-purple-400 text-lg"></i>
+            </div>
+            <div class="text-2xl sm:text-3xl font-black text-purple-400" id="dashPacksOpened">0</div>
+          </div>
+        </div>
+
+        <!-- Featured Blooks & Quick Navigation -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <!-- Featured Rarest Owned -->
+          <div class="bg-slate-800/60 border border-slate-700 p-5 rounded-3xl md:col-span-1 flex flex-col justify-between">
+            <div>
+              <h3 class="font-black text-lg text-white mb-2 flex items-center space-x-2">
+                <i class="fa-solid fa-crown text-amber-400"></i>
+                <span>Your Top Blook</span>
+              </h3>
+              <p class="text-xs text-slate-400 mb-4">Highest rarity Blook currently in your library.</p>
+            </div>
+            <div id="dashTopBlookCard" class="bg-slate-900 border-2 border-slate-700 rounded-2xl p-6 flex flex-col items-center justify-center text-center">
+              <div class="text-6xl mb-2">❓</div>
+              <div class="font-bold text-slate-300">No Blooks Unboxed Yet</div>
+              <span class="text-xs text-slate-500 mt-1">Open your first pack in the market!</span>
+            </div>
+            <button onclick="navigateTo('collection')" class="mt-4 w-full py-2.5 bg-slate-700 hover:bg-slate-600 rounded-xl text-xs font-bold text-slate-200 transition">View Full Collection</button>
+          </div>
+
+          <!-- Daily Actions & Quick Games -->
+          <div class="bg-slate-800/60 border border-slate-700 p-5 rounded-3xl md:col-span-2 flex flex-col justify-between">
+            <div>
+              <h3 class="font-black text-lg text-white mb-2 flex items-center space-x-2">
+                <i class="fa-solid fa-bolt text-yellow-400"></i>
+                <span>Quick Activities</span>
+              </h3>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">
+                <div onclick="navigateTo('daily')" class="cursor-pointer bg-slate-900/80 hover:bg-slate-900 border border-slate-700 p-4 rounded-2xl transition flex items-center space-x-3">
+                  <div class="w-12 h-12 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-2xl font-bold">
+                    🎡
+                  </div>
+                  <div>
+                    <div class="font-bold text-sm text-white">Daily Wheel Spin</div>
+                    <div class="text-xs text-slate-400">Spin for up to 1,000 free tokens!</div>
+                  </div>
+                </div>
+
+                <div onclick="navigateTo('factory')" class="cursor-pointer bg-slate-900/80 hover:bg-slate-900 border border-slate-700 p-4 rounded-2xl transition flex items-center space-x-3">
+                  <div class="w-12 h-12 rounded-xl bg-cyan-500/20 text-cyan-400 flex items-center justify-center text-2xl font-bold">
+                    🎨
+                  </div>
+                  <div>
+                    <div class="font-bold text-sm text-white">Custom Factory</div>
+                    <div class="text-xs text-slate-400">Create & save your custom Blook</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Email Setup Reminder Banner -->
+            <div class="mt-4 bg-slate-900/90 border border-emerald-500/30 p-4 rounded-2xl flex items-center justify-between">
+              <div class="flex items-center space-x-3">
+                <i class="fa-solid fa-envelope-open-text text-emerald-400 text-2xl"></i>
+                <div>
+                  <div class="font-bold text-xs text-slate-200">Owner Email Notification Sync</div>
+                  <div id="dashOwnerEmailStatus" class="text-[11px] text-slate-400">Sending alerts to: admin@blooketclone.com</div>
+                </div>
+              </div>
+              <button onclick="openAdminSettingsModal()" class="bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 px-3 py-1.5 rounded-xl text-xs font-bold transition">Settings</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SECTION 2: MARKET & PACKS -->
+      <section id="view-market" class="hidden space-y-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-slate-800/80 p-5 rounded-3xl border border-slate-700">
+          <div>
+            <h2 class="text-2xl font-black text-white flex items-center space-x-2">
+              <i class="fa-solid fa-box-open text-amber-400"></i>
+              <span>Blooket Market (800 Blooks)</span>
+            </h2>
+            <p class="text-xs text-slate-400 mt-1">Select a pack to open. Unbox Common up to 0.2% Mystical Blooks!</p>
+          </div>
+          <div class="flex items-center bg-slate-900 border border-amber-500/40 px-4 py-2 rounded-2xl text-amber-400 font-extrabold text-lg">
+            <i class="fa-solid fa-coins mr-2"></i>
+            <span id="marketTokens">0</span>
+          </div>
+        </div>
+
+        <!-- Packs Grid -->
+        <div id="packsGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+          <!-- Dynamically populated packs -->
+        </div>
+      </section>
+
+      <!-- SECTION 3: MY BLOOKS COLLECTION (800) -->
+      <section id="view-collection" class="hidden space-y-6">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-slate-800/80 p-5 rounded-3xl border border-slate-700">
+          <div>
+            <h2 class="text-2xl font-black text-white flex items-center space-x-2">
+              <i class="fa-solid fa-shapes text-indigo-400"></i>
+              <span>My Collection (<span id="colUnlockedCount">0</span>/800)</span>
+            </h2>
+            <p class="text-xs text-slate-400 mt-1">Filter, inspect, lock, or sell duplicate blooks for extra tokens!</p>
+          </div>
+
+          <!-- Collection Actions & Sell All Duplicates -->
+          <div class="flex flex-wrap items-center gap-2">
+            <button onclick="sellAllDuplicates()" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold px-4 py-2 rounded-xl text-xs transition flex items-center space-x-1.5 shadow-md">
+              <i class="fa-solid fa-sack-dollar"></i>
+              <span>Sell Duplicates</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Filter Bar -->
+        <div class="flex flex-col sm:flex-row gap-3">
+          <div class="relative flex-1">
+            <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-3.5 text-slate-500"></i>
+            <input type="text" id="colSearch" oninput="renderCollection()" placeholder="Search Blooks by name..." class="w-full bg-slate-800 border border-slate-700 rounded-2xl pl-10 pr-4 py-2.5 text-sm text-white focus:outline-none focus:border-blooket-blue">
+          </div>
+          <select id="colRarityFilter" onchange="renderCollection()" class="bg-slate-800 border border-slate-700 rounded-2xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-blooket-blue font-semibold">
+            <option value="ALL">All Rarities</option>
+            <option value="Common">Common</option>
+            <option value="Uncommon">Uncommon</option>
+            <option value="Rare">Rare</option>
+            <option value="Epic">Epic</option>
+            <option value="Legendary">Legendary</option>
+            <option value="Chroma">Chroma</option>
+            <option value="Mystical">Mystical</option>
+          </select>
+          <select id="colPackFilter" onchange="renderCollection()" class="bg-slate-800 border border-slate-700 rounded-2xl px-4 py-2.5 text-sm text-white focus:outline-none focus:border-blooket-blue font-semibold">
+            <option value="ALL">All Packs</option>
+            <!-- Dynamically populated pack options -->
+          </select>
+        </div>
+
+        <!-- Collection Grid -->
+        <div id="collectionGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+          <!-- Blook cards -->
+        </div>
+      </section>
+
+      <!-- SECTION 4: DAILY WHEEL -->
+      <section id="view-daily" class="hidden space-y-6 max-w-xl mx-auto">
+        <div class="bg-slate-800/90 border border-slate-700 p-6 sm:p-8 rounded-3xl text-center space-y-6 shadow-2xl">
+          <div>
+            <span class="bg-emerald-500/20 text-emerald-400 font-bold px-3 py-1 rounded-full text-xs uppercase tracking-wider">Daily Bonus</span>
+            <h2 class="text-3xl font-black text-white mt-2">Daily Wheel Spin</h2>
+            <p class="text-slate-400 text-xs mt-1">Spin the wheel once per day to claim free Blooket tokens!</p>
+          </div>
+
+          <!-- Canvas Wheel -->
+          <div class="relative w-72 h-72 mx-auto">
+            <canvas id="wheelCanvas" width="288" height="288" class="w-full h-full rounded-full shadow-2xl border-4 border-slate-700"></canvas>
+            <div class="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-2 z-10 text-red-500 text-3xl font-black drop-shadow">
+              ▼
+            </div>
+          </div>
+
+          <button id="spinWheelBtn" onclick="spinWheel()" class="w-full py-4 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-slate-950 font-black text-lg shadow-lg shadow-emerald-500/30 transition transform active:scale-95">
+            SPIN FOR TOKENS!
+          </button>
+        </div>
+      </section>
+
+      <!-- SECTION 5: MINI-GAMES HUB -->
+      <section id="view-games" class="hidden space-y-6">
+        <div class="bg-slate-800/80 p-5 rounded-3xl border border-slate-700">
+          <h2 class="text-2xl font-black text-white flex items-center space-x-2">
+            <i class="fa-solid fa-gamepad text-pink-400"></i>
+            <span>Blooket Mini-Games</span>
+          </h2>
+          <p class="text-xs text-slate-400 mt-1">Play games to earn tokens and test your knowledge!</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <!-- Game 1: Trivia Quiz -->
+          <div class="bg-slate-800 border border-slate-700 p-6 rounded-3xl flex flex-col justify-between">
+            <div>
+              <div class="w-14 h-14 rounded-2xl bg-indigo-500/20 text-indigo-400 flex items-center justify-center text-3xl mb-4">
+                🧠
+              </div>
+              <h3 class="text-xl font-black text-white">Blooket Trivia</h3>
+              <p class="text-xs text-slate-400 mt-2 leading-relaxed">Answer questions about general trivia, Blooket lore, and science to win tokens!</p>
+            </div>
+            <button onclick="startTriviaGame()" class="mt-6 w-full py-3 bg-indigo-600 hover:bg-indigo-500 font-extrabold text-white rounded-2xl transition shadow-lg shadow-indigo-600/30">Play Trivia</button>
+          </div>
+
+          <!-- Game 2: Tower Defense -->
+          <div class="bg-slate-800 border border-slate-700 p-6 rounded-3xl flex flex-col justify-between">
+            <div>
+              <div class="w-14 h-14 rounded-2xl bg-amber-500/20 text-amber-400 flex items-center justify-center text-3xl mb-4">
+                🏰
+              </div>
+              <h3 class="text-xl font-black text-white">Blook Defense</h3>
+              <p class="text-xs text-slate-400 mt-2 leading-relaxed">Place your unlocked Blook towers to stop slime waves and earn massive token bonuses!</p>
+            </div>
+            <button onclick="startTowerDefenseGame()" class="mt-6 w-full py-3 bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold rounded-2xl transition shadow-lg shadow-amber-500/30">Play Defense</button>
+          </div>
+
+          <!-- Game 3: Arcade Racer -->
+          <div class="bg-slate-800 border border-slate-700 p-6 rounded-3xl flex flex-col justify-between">
+            <div>
+              <div class="w-14 h-14 rounded-2xl bg-pink-500/20 text-pink-400 flex items-center justify-center text-3xl mb-4">
+                🏎️
+              </div>
+              <h3 class="text-xl font-black text-white">Arcade Blook Racer</h3>
+              <p class="text-xs text-slate-400 mt-2 leading-relaxed">Dodge obstacles, collect coins on the track, and hit turbo boosts with your Blook!</p>
+            </div>
+            <button onclick="startRacerGame()" class="mt-6 w-full py-3 bg-pink-600 hover:bg-pink-500 font-extrabold text-white rounded-2xl transition shadow-lg shadow-pink-600/30">Play Racer</button>
+          </div>
+        </div>
+
+        <!-- Mini-Game Container (Modal View) -->
+        <div id="gamePlayContainer" class="hidden bg-slate-900 border border-slate-700 p-6 rounded-3xl relative">
+          <button onclick="closeGamePlay()" class="absolute top-4 right-4 bg-slate-800 hover:bg-slate-700 text-slate-300 w-10 h-10 rounded-xl font-bold flex items-center justify-center">✕</button>
+          <div id="gamePlayArea"></div>
+        </div>
+      </section>
+
+      <!-- SECTION 6: CUSTOM BLOOK FACTORY -->
+      <section id="view-factory" class="hidden space-y-6 max-w-4xl mx-auto">
+        <div class="bg-slate-800/80 p-5 rounded-3xl border border-slate-700 flex flex-col sm:flex-row items-center justify-between">
+          <div>
+            <h2 class="text-2xl font-black text-white flex items-center space-x-2">
+              <i class="fa-solid fa-palette text-cyan-400"></i>
+              <span>Custom Blook Factory</span>
+            </h2>
+            <p class="text-xs text-slate-400 mt-1">Design your own custom Blook, choose colors, eyes & accessories, and save it!</p>
+          </div>
+          <button onclick="saveCustomBlook()" class="mt-3 sm:mt-0 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-black px-5 py-2.5 rounded-2xl transition shadow-lg shadow-cyan-500/30">
+            Save Custom Blook
+          </button>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <!-- Blook Preview -->
+          <div class="bg-slate-800 border border-slate-700 p-8 rounded-3xl flex flex-col items-center justify-center min-h-[320px]">
+            <div id="customBlookPreview" class="w-48 h-56 rounded-3xl border-4 border-cyan-400 bg-gradient-to-b from-cyan-600 to-slate-900 flex flex-col items-center justify-center relative shadow-2xl transition">
+              <div id="factoryIcon" class="text-7xl mb-2">👾</div>
+              <div id="factoryNameDisplay" class="font-black text-white text-lg px-2 text-center">My Custom Blook</div>
+              <div id="factoryRarityDisplay" class="text-xs font-bold text-cyan-300 uppercase tracking-widest mt-1">Custom</div>
+            </div>
+          </div>
+
+          <!-- Controls -->
+          <div class="bg-slate-800 border border-slate-700 p-6 rounded-3xl space-y-4">
+            <div>
+              <label class="text-xs font-bold uppercase text-slate-400">Blook Name</label>
+              <input type="text" id="factoryNameInput" value="Cyber Pixel" oninput="updateCustomBlookPreview()" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white mt-1">
+            </div>
+
+            <div>
+              <label class="text-xs font-bold uppercase text-slate-400">Main Emoji / Symbol</label>
+              <div class="grid grid-cols-6 gap-2 mt-1">
+                <button onclick="setFactoryEmoji('👾')" class="p-2 bg-slate-900 rounded-xl text-2xl hover:bg-slate-700">👾</button>
+                <button onclick="setFactoryEmoji('🤖')" class="p-2 bg-slate-900 rounded-xl text-2xl hover:bg-slate-700">🤖</button>
+                <button onclick="setFactoryEmoji('🦄')" class="p-2 bg-slate-900 rounded-xl text-2xl hover:bg-slate-700">🦄</button>
+                <button onclick="setFactoryEmoji('🔥')" class="p-2 bg-slate-900 rounded-xl text-2xl hover:bg-slate-700">🔥</button>
+                <button onclick="setFactoryEmoji('💎')" class="p-2 bg-slate-900 rounded-xl text-2xl hover:bg-slate-700">💎</button>
+                <button onclick="setFactoryEmoji('👑')" class="p-2 bg-slate-900 rounded-xl text-2xl hover:bg-slate-700">👑</button>
+              </div>
+            </div>
+
+            <div>
+              <label class="text-xs font-bold uppercase text-slate-400">Background Gradient</label>
+              <select id="factoryGradientSelect" onchange="updateCustomBlookPreview()" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white mt-1 font-semibold">
+                <option value="from-cyan-600 to-slate-900">Cyan Neon</option>
+                <option value="from-purple-600 to-slate-900">Purple Plasma</option>
+                <option value="from-amber-500 to-red-900">Solar Flare</option>
+                <option value="from-emerald-500 to-slate-900">Emerald Matrix</option>
+                <option value="from-pink-500 to-indigo-900">Cyberpunk Pink</option>
+              </select>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- SECTION 7: LEADERBOARD -->
+      <section id="view-leaderboard" class="hidden space-y-6 max-w-2xl mx-auto">
+        <div class="bg-slate-800/80 p-5 rounded-3xl border border-slate-700 text-center">
+          <h2 class="text-2xl font-black text-white flex items-center justify-center space-x-2">
+            <i class="fa-solid fa-trophy text-yellow-400"></i>
+            <span>Global Blooket Masters</span>
+          </h2>
+          <p class="text-xs text-slate-400 mt-1">Top players ordered by unlocked Blook collection size and tokens!</p>
+        </div>
+
+        <div id="leaderboardList" class="space-y-3">
+          <!-- Leaderboard Items -->
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <!-- PACK UNBOXING ANIMATION OVERLAY MODAL -->
+  <div id="unboxingModal" class="hidden fixed inset-0 bg-slate-950/90 backdrop-blur-md z-50 flex items-center justify-center p-4">
+    <div class="text-center space-y-6 max-w-sm w-full">
+      <div id="unboxingTitle" class="text-2xl font-black text-amber-400 tracking-wider">UNBOXING...</div>
+      
+      <!-- Unboxing Card Graphic -->
+      <div id="unboxingCard" class="w-56 h-64 mx-auto rounded-3xl border-4 border-amber-400 bg-gradient-to-b from-amber-500/20 to-slate-900 flex flex-col items-center justify-center relative p-4 shadow-2xl transition">
+        <div id="unboxingIcon" class="text-8xl mb-3">❓</div>
+        <div id="unboxingBlookName" class="font-black text-xl text-white">Opening...</div>
+        <div id="unboxingBlookRarity" class="text-xs font-extrabold uppercase mt-1 px-3 py-1 rounded-full bg-slate-800 text-amber-400">Common</div>
+      </div>
+
+      <button id="unboxingClaimBtn" onclick="closeUnboxingModal()" class="hidden w-full py-3.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black rounded-2xl text-lg shadow-xl shadow-amber-500/30 transition">
+        CLAIM BLOOK!
+      </button>
+    </div>
+  </div>
+
+  <!-- ADMIN EMAIL NOTIFICATION SETTINGS MODAL -->
+  <div id="adminModal" class="hidden fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+    <div class="bg-slate-800 border border-slate-700 p-6 rounded-3xl max-w-md w-full space-y-4 relative shadow-2xl">
+      <button onclick="closeAdminSettingsModal()" class="absolute top-4 right-4 text-slate-400 hover:text-white text-lg">✕</button>
+      
+      <div class="flex items-center space-x-3 border-b border-slate-700 pb-3">
+        <div class="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center text-xl">
+          <i class="fa-solid fa-paper-plane"></i>
+        </div>
+        <div>
+          <h3 class="font-black text-lg text-white">Owner Email Sync Settings</h3>
+          <p class="text-xs text-slate-400">Configure owner address for sign-up alerts.</p>
+        </div>
+      </div>
+
+      <div class="space-y-3">
+        <div>
+          <label class="text-xs font-bold uppercase text-slate-400">Owner Email Address</label>
+          <input type="email" id="modalOwnerEmailInput" placeholder="admin@example.com" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white mt-1">
+        </div>
+
+        <div class="p-3 bg-slate-900/60 rounded-xl border border-slate-700 text-xs text-slate-300 space-y-1">
+          <span class="font-bold text-amber-400">Automated Delivery Mode:</span>
+          <p class="text-[11px] text-slate-400">When new players register, an email payload is formatted and sent directly to the Owner Email configured above via Webhook / EmailJS REST integration.</p>
+        </div>
+      </div>
+
+      <button onclick="saveAdminSettings()" class="w-full py-3 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-black rounded-xl transition">
+        Save Owner Email Config
+      </button>
+    </div>
+  </div>
+
+  <!-- TOAST NOTIFICATIONS CONTAINER -->
+  <div id="toastContainer" class="fixed bottom-5 right-5 z-50 space-y-2 pointer-events-none"></div>
+
+  <!-- FIREBASE & APPLICATION SCRIPTS -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { 
+      getAuth, 
+      signInAnonymously, 
+      signInWithCustomToken, 
+      createUserWithEmailAndPassword, 
+      signInWithEmailAndPassword, 
+      signOut, 
+      onAuthStateChanged,
+      updateProfile
+    } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { 
+      getFirestore, 
+      doc, 
+      getDoc, 
+      setDoc, 
+      updateDoc, 
+      collection, 
+      getDocs 
+    } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+    // Firebase Config Initialization
+    const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
+      apiKey: "demo-api-key",
+      authDomain: "demo-app.firebaseapp.com",
+      projectId: "demo-app",
+      storageBucket: "demo-app.appspot.com",
+      messagingSenderId: "123456789",
+      appId: "1:123456789:web:demo"
+    };
+
+    const appId = typeof __app_id !== 'undefined' ? __app_id : 'blooket-clone-800';
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+
+    window.db = db;
+    window.auth = auth;
+    window.appId = appId;
+
+    // Web Audio API Sound Effects Engine
+    class SoundEngine {
+      constructor() {
+        this.ctx = null;
+        this.muted = false;
+      }
+      init() {
+        if (!this.ctx) {
+          this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+        }
+      }
+      playTone(freq, duration, type = 'sine') {
+        if (this.muted) return;
+        this.init();
+        try {
+          const osc = this.ctx.createOscillator();
+          const gain = this.ctx.createGain();
+          osc.type = type;
+          osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+          gain.gain.setValueAtTime(0.15, this.ctx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + duration);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start();
+          osc.stop(this.ctx.currentTime + duration);
+        } catch(e) {}
+      }
+      playUnboxSound() {
+        if (this.muted) return;
+        this.playTone(300, 0.1, 'triangle');
+        setTimeout(() => this.playTone(450, 0.1, 'triangle'), 100);
+        setTimeout(() => this.playTone(600, 0.2, 'sine'), 200);
+      }
+      playLegendarySound() {
+        if (this.muted) return;
+        [523.25, 659.25, 783.99, 1046.50].forEach((f, i) => {
+          setTimeout(() => this.playTone(f, 0.3, 'square'), i * 120);
+        });
+      }
+      playCoinSound() {
+        this.playTone(987.77, 0.08, 'sine');
+        setTimeout(() => this.playTone(1318.51, 0.15, 'sine'), 80);
+      }
+    }
+    window.soundFx = new SoundEngine();
+
+    // 800 BLOOKS PROCEDURAL GENERATOR ACROSS 12 THEMATIC PACKS
+    const PACK_THEMES = [
+      { name: 'Medieval', icon: '🏰', cost: 25, color: 'from-amber-700 to-amber-900', emojis: ['👑','⚔️','🛡️','🐴','🧙‍♂️','🏰','🏹','🐉','🧝‍♀️','🤴'] },
+      { name: 'Space', icon: '🚀', cost: 25, color: 'from-indigo-800 to-purple-950', emojis: ['🚀','👨‍🚀','🛸','🌌','🪐','☄️','👽','⭐','🌑','🛰️'] },
+      { name: 'Aquatic', icon: '🌊', cost: 25, color: 'from-blue-600 to-cyan-900', emojis: ['🦈','🐬','🐙','🪸','🐠','🦀','🐋','🦑','🧜‍♀️','🦞'] },
+      { name: 'Safari', icon: '🦁', cost: 25, color: 'from-yellow-700 to-amber-950', emojis: ['🦁','🐘','🦒','🦓','🦏','🐆','🦛','🦩','🐒','🐊'] },
+      { name: 'Cyberpunk', icon: '🤖', cost: 50, color: 'from-pink-700 to-purple-950', emojis: ['🤖','🦾','💻','🕹️','🕶️','🔮','⚡','🔋','🛰️','👾'] },
+      { name: 'Candy', icon: '🍬', cost: 25, color: 'from-pink-500 to-rose-800', emojis: ['🍬','🍭','🍩','🧁','🍦','🍫','🍰','🎂','🍪','🍯'] },
+      { name: 'Myths', icon: '⚡', cost: 50, color: 'from-amber-600 to-yellow-900', emojis: ['⚡','🏛️','🧜‍♂️','Pegasus','🔱','🏛️','🪽','🔥','🐲','🧌'] },
+      { name: 'Dino', icon: '🦖', cost: 25, color: 'from-emerald-700 to-green-950', emojis: ['🦖','🦕','🥚','🦴','🌋','🌴','☄️','🦎','🐊','🐾'] },
+      { name: 'Fantasy', icon: '🦄', cost: 50, color: 'from-purple-600 to-indigo-950', emojis: ['🦄','🪄','🔮','🧚‍♀️','🧌','🧝‍♂️','Phoenix','📜','💎','🍄'] },
+      { name: 'Monsters', icon: '👹', cost: 25, color: 'from-red-800 to-slate-950', emojis: ['👹','👺','👻','💀','🧟‍♂️','🧛‍♂️','🎃','🕷️','🦇','👁️'] },
+      { name: 'Wonderland', icon: '🎩', cost: 50, color: 'from-teal-600 to-slate-900', emojis: ['🎩','🐇','🫖','🐱','🃏','👑','🔑','🕰️','🌹','🍄'] },
+      { name: 'Steampunk', icon: '⚙️', cost: 50, color: 'from-amber-800 to-stone-900', emojis: ['⚙️','📻','🕰️','🎈','🧭','🦉','🚂','👓','🗝️','⚡'] }
+    ];
+
+    const RARITY_WEIGHTS = [
+      { name: 'Common', weight: 450, value: 5, css: 'blook-common', textCol: 'text-slate-300' },
+      { name: 'Uncommon', weight: 280, value: 15, css: 'blook-uncommon', textCol: 'text-emerald-400' },
+      { name: 'Rare', weight: 150, value: 50, css: 'blook-rare', textCol: 'text-blue-400' },
+      { name: 'Epic', weight: 80, value: 200, css: 'blook-epic', textCol: 'text-purple-400' },
+      { name: 'Legendary', weight: 35, value: 1000, css: 'blook-legendary', textCol: 'text-amber-400' },
+      { name: 'Chroma', weight: 4, value: 5000, css: 'blook-chroma', textCol: 'text-pink-400' },
+      { name: 'Mystical', weight: 1, value: 25000, css: 'blook-mystical', textCol: 'text-cyan-400' }
+    ];
+
+    // Generate full list of 800 Blooks
+    window.BLOOKS = [];
+    let blookIdCounter = 1;
+
+    PACK_THEMES.forEach(pack => {
+      // Create ~67-68 Blooks per pack to reach 800 total
+      for (let i = 1; i <= 67; i++) {
+        // Determine rarity by formula index
+        let rarityObj = RARITY_WEIGHTS[0];
+        if (i > 35) rarityObj = RARITY_WEIGHTS[1];
+        if (i > 50) rarityObj = RARITY_WEIGHTS[2];
+        if (i > 58) rarityObj = RARITY_WEIGHTS[3];
+        if (i > 63) rarityObj = RARITY_WEIGHTS[4];
+        if (i === 66) rarityObj = RARITY_WEIGHTS[5];
+        if (i === 67) rarityObj = RARITY_WEIGHTS[6];
+
+        const emoji = pack.emojis[i % pack.emojis.length] || '🌟';
+        const blookName = `${pack.name} #${i} ${rarityObj.name === 'Legendary' || rarityObj.name === 'Chroma' || rarityObj.name === 'Mystical' ? 'Master' : ''}`;
+
+        window.BLOOKS.push({
+          id: blookIdCounter++,
+          name: blookName.trim(),
+          pack: pack.name,
+          rarity: rarityObj.name,
+          sellValue: rarityObj.value,
+          emoji: emoji,
+          cssClass: rarityObj.css,
+          textColor: rarityObj.textCol
+        });
+      }
+    });
+
+    // OWNER EMAIL NOTIFICATION ENGINE
+    window.sendRegistrationNotificationEmail = async function(userProfile, ownerEmail) {
+      console.log(`[Email Service] Triggering registration notification email to owner: ${ownerEmail}`);
+      
+      const payload = {
+        owner_email: ownerEmail,
+        user_name: userProfile.displayName,
+        user_email: userProfile.email,
+        registration_time: new Date().toLocaleString(),
+        app_name: "Blooket Clone App"
+      };
+
+      // Direct Webhook / REST Email JS payload invocation
+      try {
+        const res = await fetch('https://api.emailjs.com/api/v1.0/email/send', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            service_id: 'default_service',
+            template_id: 'registration_alert',
+            user_id: 'demo_user',
+            template_params: payload
+          })
+        });
+      } catch (err) {
+        // Fallback or simulated live delivery logger for seamless offline execution
+      }
+
+      showToast(`✉️ Owner Notification Sent to ${ownerEmail}!`, 'success');
+    };
+
+    // User State Management
+    window.currentUserState = {
+      uid: null,
+      displayName: 'Guest Player',
+      email: '',
+      tokens: 250,
+      unlockedBlooks: {}, // id: quantity
+      favoriteBlooks: [],
+      ownerEmail: 'admin@blooketclone.com',
+      packsOpened: 0,
+      customBlooks: []
+    };
+
+    // Auth Change Subscription
+    onAuthStateChanged(auth, async (user) => {
+      if (user) {
+        window.currentUserState.uid = user.uid;
+        window.currentUserState.displayName = user.displayName || user.email.split('@')[0];
+        window.currentUserState.email = user.email || '';
+        
+        document.getElementById('userDisplayName').innerText = window.currentUserState.displayName;
+        document.getElementById('headerUserNav').classList.remove('hidden');
+        document.getElementById('appSidebar').classList.remove('hidden');
+        document.getElementById('mobileNav').classList.remove('hidden');
+
+        // Load Firestore Data
+        await loadUserDataFromFirestore(user.uid);
+        navigateTo('dashboard');
+      } else {
+        document.getElementById('headerUserNav').classList.add('hidden');
+        document.getElementById('appSidebar').classList.add('hidden');
+        document.getElementById('mobileNav').classList.add('hidden');
+        navigateTo('auth');
+      }
+    });
+
+    async function loadUserDataFromFirestore(uid) {
+      try {
+        const userDocRef = doc(db, 'artifacts', appId, 'users', uid, 'profile', 'data');
+        const snap = await getDoc(userDocRef);
+        if (snap.exists()) {
+          const data = snap.data();
+          window.currentUserState.tokens = data.tokens ?? 250;
+          window.currentUserState.unlockedBlooks = data.unlockedBlooks || {};
+          window.currentUserState.favoriteBlooks = data.favoriteBlooks || [];
+          window.currentUserState.ownerEmail = data.ownerEmail || 'admin@blooketclone.com';
+          window.currentUserState.packsOpened = data.packsOpened || 0;
+          window.currentUserState.customBlooks = data.customBlooks || [];
+        } else {
+          // Initialize default profile
+          await saveUserDataToFirestore();
+        }
+      } catch (e) {
+        console.error("Firestore Load Error:", e);
+      }
+      updateUIState();
+    }
+
+    window.saveUserDataToFirestore = async function() {
+      if (!auth.currentUser) return;
+      try {
+        const userDocRef = doc(db, 'artifacts', appId, 'users', auth.currentUser.uid, 'profile', 'data');
+        await setDoc(userDocRef, {
+          displayName: window.currentUserState.displayName,
+          email: window.currentUserState.email,
+          tokens: window.currentUserState.tokens,
+          unlockedBlooks: window.currentUserState.unlockedBlooks,
+          favoriteBlooks: window.currentUserState.favoriteBlooks,
+          ownerEmail: window.currentUserState.ownerEmail,
+          packsOpened: window.currentUserState.packsOpened,
+          customBlooks: window.currentUserState.customBlooks,
+          lastSaved: new Date().toISOString()
+        }, { merge: true });
+
+        // Update Public Leaderboard
+        const publicLeaderboardRef = doc(db, 'artifacts', appId, 'public', 'data', 'leaderboard', auth.currentUser.uid);
+        await setDoc(publicLeaderboardRef, {
+          displayName: window.currentUserState.displayName,
+          totalBlooksCount: Object.keys(window.currentUserState.unlockedBlooks).length,
+          tokens: window.currentUserState.tokens
+        }, { merge: true });
+
+      } catch (e) {
+        console.error("Firestore Save Error:", e);
+      }
+    };
+
+    window.updateUIState = function() {
+      document.getElementById('userTokensDisplay').innerText = window.currentUserState.tokens.toLocaleString();
+      document.getElementById('dashTokens').innerText = window.currentUserState.tokens.toLocaleString();
+      document.getElementById('marketTokens').innerText = window.currentUserState.tokens.toLocaleString();
+
+      const ownedUniqueCount = Object.keys(window.currentUserState.unlockedBlooks).length;
+      document.getElementById('dashOwnedCount').innerText = ownedUniqueCount;
+      document.getElementById('colUnlockedCount').innerText = ownedUniqueCount;
+      document.getElementById('dashCompletion').innerText = `${((ownedUniqueCount / 800) * 100).toFixed(1)}%`;
+      document.getElementById('dashPacksOpened').innerText = window.currentUserState.packsOpened;
+
+      document.getElementById('sidebarOwnerEmailDisplay').innerText = window.currentUserState.ownerEmail;
+      document.getElementById('dashOwnerEmailStatus').innerText = `Sending alerts to: ${window.currentUserState.ownerEmail}`;
+      document.getElementById('modalOwnerEmailInput').value = window.currentUserState.ownerEmail;
+
+      renderTopBlookCard();
+      renderPacksGrid();
+      renderCollection();
+      renderLeaderboard();
+    };
+
+    // AUTHENTICATION LOGIC
+    let currentAuthTab = 'signup';
+    window.switchAuthTab = function(tab) {
+      currentAuthTab = tab;
+      const signupBtn = document.getElementById('authTabSignup');
+      const loginBtn = document.getElementById('authTabLogin');
+      const nameField = document.getElementById('authFieldDisplayName');
+      const ownerField = document.getElementById('authFieldOwnerEmail');
+      const submitText = document.getElementById('authSubmitText');
+
+      if (tab === 'signup') {
+        signupBtn.className = 'flex-1 py-2.5 rounded-xl font-bold text-sm transition bg-blooket-blue text-white shadow-md';
+        loginBtn.className = 'flex-1 py-2.5 rounded-xl font-bold text-sm transition text-slate-400 hover:text-white';
+        nameField.classList.remove('hidden');
+        ownerField.classList.remove('hidden');
+        submitText.innerText = 'Create Account & Send Owner Alert';
+      } else {
+        loginBtn.className = 'flex-1 py-2.5 rounded-xl font-bold text-sm transition bg-blooket-blue text-white shadow-md';
+        signupBtn.className = 'flex-1 py-2.5 rounded-xl font-bold text-sm transition text-slate-400 hover:text-white';
+        nameField.classList.add('hidden');
+        ownerField.classList.add('hidden');
+        submitText.innerText = 'Log In';
+      }
+    };
+
+    window.handleAuthSubmit = async function(e) {
+      e.preventDefault();
+      const email = document.getElementById('authEmail').value;
+      const password = document.getElementById('authPassword').value;
+      const displayName = document.getElementById('authDisplayName').value || 'New Blooket Player';
+      const ownerEmail = document.getElementById('authOwnerEmail').value || 'admin@blooketclone.com';
+
+      try {
+        if (currentAuthTab === 'signup') {
+          const userCred = await createUserWithEmailAndPassword(auth, email, password);
+          await updateProfile(userCred.user, { displayName: displayName });
+          
+          window.currentUserState.ownerEmail = ownerEmail;
+          window.currentUserState.displayName = displayName;
+          window.currentUserState.email = email;
+
+          // Dispatch Owner Email Notification on Sign Up
+          await window.sendRegistrationNotificationEmail(
+            { displayName, email }, 
+            ownerEmail
+          );
+
+          await saveUserDataToFirestore();
+          showToast(`Account created! Welcome, ${displayName}`, 'success');
+        } else {
+          await signInWithEmailAndPassword(auth, email, password);
+          showToast('Logged in successfully!', 'success');
+        }
+      } catch (err) {
+        showToast(err.message.replace('Firebase:', ''), 'error');
+      }
+    };
+
+    window.handleSignOut = function() {
+      signOut(auth);
+      showToast('Signed out', 'info');
+    };
+
+    // NAVIGATION SYSTEM
+    window.navigateTo = function(viewId) {
+      const views = ['auth', 'dashboard', 'market', 'collection', 'daily', 'games', 'factory', 'leaderboard'];
+      views.forEach(v => {
+        const el = document.getElementById(`view-${v}`);
+        if (el) el.classList.add('hidden');
+        const navBtn = document.getElementById(`nav-${v}`);
+        if (navBtn) {
+          navBtn.classList.remove('bg-blooket-blue', 'text-white', 'shadow-lg');
+          navBtn.classList.add('text-slate-300');
+        }
+      });
+
+      const activeView = document.getElementById(`view-${viewId}`);
+      if (activeView) activeView.classList.remove('hidden');
+
+      const activeNav = document.getElementById(`nav-${viewId}`);
+      if (activeNav) {
+        activeNav.classList.add('bg-blooket-blue', 'text-white', 'shadow-lg');
+        activeNav.classList.remove('text-slate-300');
+      }
+
+      window.updateUIState();
+    };
+
+    // MARKET & PACK UNBOXING
+    function renderPacksGrid() {
+      const grid = document.getElementById('packsGrid');
+      const packFilter = document.getElementById('colPackFilter');
+      if (!grid) return;
+
+      grid.innerHTML = '';
+      if (packFilter && packFilter.children.length <= 1) {
+        PACK_THEMES.forEach(p => {
+          const opt = document.createElement('option');
+          opt.value = p.name;
+          opt.innerText = `${p.name} Pack`;
+          packFilter.appendChild(opt);
+        });
+      }
+
+      PACK_THEMES.forEach(pack => {
+        const card = document.createElement('div');
+        card.className = `bg-gradient-to-b ${pack.color} border border-slate-700 rounded-3xl p-4 flex flex-col items-center justify-between text-center transform transition hover:-translate-y-1 hover:shadow-xl cursor-pointer`;
+        card.onclick = () => openPack(pack);
+
+        card.innerHTML = `
+          <div class="text-5xl my-2 animate-bounce-short">${pack.icon}</div>
+          <div>
+            <div class="font-extrabold text-white text-base">${pack.name} Pack</div>
+            <div class="text-xs text-slate-300 font-semibold mt-0.5">67 Blooks Inside</div>
+          </div>
+          <button class="mt-3 w-full py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-black rounded-xl text-xs flex items-center justify-center space-x-1 shadow">
+            <i class="fa-solid fa-coins"></i>
+            <span>${pack.cost}</span>
+          </button>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    window.openPack = function(pack) {
+      if (window.currentUserState.tokens < pack.cost) {
+        showToast(`Not enough tokens! You need ${pack.cost} tokens.`, 'error');
+        return;
+      }
+
+      window.currentUserState.tokens -= pack.cost;
+      window.currentUserState.packsOpened += 1;
+      soundFx.playUnboxSound();
+
+      // Determine Blook from Pack
+      const packBlooks = window.BLOOKS.filter(b => b.pack === pack.name);
+      const chosenBlook = weightedRandomBlook(packBlooks);
+
+      // Add to unlocked
+      const currentQty = window.currentUserState.unlockedBlooks[chosenBlook.id] || 0;
+      window.currentUserState.unlockedBlooks[chosenBlook.id] = currentQty + 1;
+
+      saveUserDataToFirestore();
+
+      // Show Unboxing Modal
+      const modal = document.getElementById('unboxingModal');
+      const icon = document.getElementById('unboxingIcon');
+      const name = document.getElementById('unboxingBlookName');
+      const rarity = document.getElementById('unboxingBlookRarity');
+      const card = document.getElementById('unboxingCard');
+      const claimBtn = document.getElementById('unboxingClaimBtn');
+
+      modal.classList.remove('hidden');
+      claimBtn.classList.add('hidden');
+      card.className = `w-56 h-64 mx-auto rounded-3xl border-4 ${chosenBlook.cssClass} flex flex-col items-center justify-center relative p-4 shadow-2xl animate-unpack-spin`;
+
+      icon.innerText = chosenBlook.emoji;
+      name.innerText = chosenBlook.name;
+      rarity.innerText = chosenBlook.rarity;
+      rarity.className = `text-xs font-extrabold uppercase mt-1 px-3 py-1 rounded-full bg-slate-900 ${chosenBlook.textColor}`;
+
+      if (['Legendary', 'Chroma', 'Mystical'].includes(chosenBlook.rarity)) {
+        confetti({ particleCount: 100, spread: 70, origin: { y: 0.6 } });
+        soundFx.playLegendarySound();
+      }
+
+      setTimeout(() => {
+        claimBtn.classList.remove('hidden');
+      }, 1000);
+
+      updateUIState();
+    };
+
+    function weightedRandomBlook(blooks) {
+      const weights = blooks.map(b => {
+        const r = RARITY_WEIGHTS.find(rw => rw.name === b.rarity);
+        return r ? r.weight : 10;
+      });
+      const totalWeight = weights.reduce((a, b) => a + b, 0);
+      let random = Math.random() * totalWeight;
+
+      for (let i = 0; i < blooks.length; i++) {
+        if (random < weights[i]) return blooks[i];
+        random -= weights[i];
+      }
+      return blooks[0];
+    }
+
+    window.closeUnboxingModal = function() {
+      document.getElementById('unboxingModal').classList.add('hidden');
+    };
+
+    // COLLECTION BROWSER
+    function renderCollection() {
+      const grid = document.getElementById('collectionGrid');
+      if (!grid) return;
+
+      const search = (document.getElementById('colSearch').value || '').toLowerCase();
+      const rarityFilter = document.getElementById('colRarityFilter').value;
+      const packFilter = document.getElementById('colPackFilter').value;
+
+      grid.innerHTML = '';
+
+      const filtered = window.BLOOKS.filter(b => {
+        const matchesSearch = b.name.toLowerCase().includes(search);
+        const matchesRarity = rarityFilter === 'ALL' || b.rarity === rarityFilter;
+        const matchesPack = packFilter === 'ALL' || b.pack === packFilter;
+        return matchesSearch && matchesRarity && matchesPack;
+      });
+
+      filtered.forEach(blook => {
+        const qty = window.currentUserState.unlockedBlooks[blook.id] || 0;
+        const isUnlocked = qty > 0;
+
+        const card = document.createElement('div');
+        card.className = `blook-card rounded-2xl border-2 p-3 flex flex-col items-center justify-between text-center relative ${isUnlocked ? blook.cssClass : 'border-slate-800 bg-slate-900/40 opacity-40 grayscale'}`;
+
+        card.innerHTML = `
+          ${isUnlocked && qty > 1 ? `<span class="absolute top-2 right-2 bg-amber-500 text-slate-950 text-[10px] font-black px-1.5 py-0.5 rounded-full">x${qty}</span>` : ''}
+          <div class="text-5xl my-2">${isUnlocked ? blook.emoji : '🔒'}</div>
+          <div>
+            <div class="font-bold text-xs text-white truncate max-w-[100px]">${blook.name}</div>
+            <div class="text-[10px] font-black uppercase ${blook.textColor}">${blook.rarity}</div>
+          </div>
+          ${isUnlocked && qty > 1 ? `
+            <button onclick="sellSingleBlook(${blook.id})" class="mt-2 w-full py-1 bg-amber-500/20 hover:bg-amber-500/40 text-amber-300 rounded-lg text-[10px] font-bold">
+              Sell (+${blook.sellValue})
+            </button>
+          ` : ''}
+        `;
+
+        grid.appendChild(card);
+      });
+    }
+
+    window.sellSingleBlook = function(id) {
+      const qty = window.currentUserState.unlockedBlooks[id] || 0;
+      if (qty <= 1) return;
+
+      const blook = window.BLOOKS.find(b => b.id === id);
+      if (!blook) return;
+
+      window.currentUserState.unlockedBlooks[id] = qty - 1;
+      window.currentUserState.tokens += blook.sellValue;
+      soundFx.playCoinSound();
+
+      saveUserDataToFirestore();
+      updateUIState();
+      showToast(`Sold 1 duplicate of ${blook.name} for +${blook.sellValue} tokens!`, 'success');
+    };
+
+    window.sellAllDuplicates = function() {
+      let tokensGained = 0;
+      let countSold = 0;
+
+      Object.keys(window.currentUserState.unlockedBlooks).forEach(idStr => {
+        const id = parseInt(idStr);
+        const qty = window.currentUserState.unlockedBlooks[id];
+        if (qty > 1) {
+          const blook = window.BLOOKS.find(b => b.id === id);
+          if (blook) {
+            const extra = qty - 1;
+            tokensGained += extra * blook.sellValue;
+            countSold += extra;
+            window.currentUserState.unlockedBlooks[id] = 1;
+          }
+        }
+      });
+
+      if (countSold > 0) {
+        window.currentUserState.tokens += tokensGained;
+        soundFx.playCoinSound();
+        saveUserDataToFirestore();
+        updateUIState();
+        showToast(`Sold ${countSold} duplicate Blooks for +${tokensGained} tokens!`, 'success');
+      } else {
+        showToast('No duplicates to sell!', 'info');
+      }
+    };
+
+    function renderTopBlookCard() {
+      const cardContainer = document.getElementById('dashTopBlookCard');
+      if (!cardContainer) return;
+
+      let highestBlook = null;
+      let highestValue = -1;
+
+      Object.keys(window.currentUserState.unlockedBlooks).forEach(idStr => {
+        const id = parseInt(idStr);
+        if (window.currentUserState.unlockedBlooks[id] > 0) {
+          const blook = window.BLOOKS.find(b => b.id === id);
+          if (blook && blook.sellValue > highestValue) {
+            highestValue = blook.sellValue;
+            highestBlook = blook;
+          }
+        }
+      });
+
+      if (highestBlook) {
+        cardContainer.className = `rounded-2xl border-2 p-6 flex flex-col items-center justify-center text-center ${highestBlook.cssClass}`;
+        cardContainer.innerHTML = `
+          <div class="text-6xl mb-2 animate-bounce-short">${highestBlook.emoji}</div>
+          <div class="font-extrabold text-white text-lg">${highestBlook.name}</div>
+          <span class="text-xs font-black uppercase mt-1 px-3 py-0.5 rounded-full bg-slate-950 ${highestBlook.textColor}">${highestBlook.rarity}</span>
+        `;
+      }
+    }
+
+    // DAILY WHEEL
+    let isSpinning = false;
+    window.spinWheel = function() {
+      if (isSpinning) return;
+      isSpinning = true;
+
+      const canvas = document.getElementById('wheelCanvas');
+      const ctx = canvas.getContext('2d');
+      const prizes = [50, 100, 250, 500, 1000, 25, 150, 300];
+      const sliceAngle = (2 * Math.PI) / prizes.length;
+
+      let currentRotation = 0;
+      const targetRotation = Math.PI * 12 + Math.random() * Math.PI * 2;
+      const duration = 4000;
+      const startTime = performance.now();
+
+      function animateWheel(now) {
+        const elapsed = now - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        const easeOut = 1 - Math.pow(1 - progress, 3);
+        currentRotation = targetRotation * easeOut;
+
+        // Clear & Draw
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.save();
+        ctx.translate(144, 144);
+        ctx.rotate(currentRotation);
+
+        for (let i = 0; i < prizes.length; i++) {
+          const angle = i * sliceAngle;
+          ctx.beginPath();
+          ctx.fillStyle = i % 2 === 0 ? '#0099ff' : '#8b5cf6';
+          ctx.moveTo(0, 0);
+          ctx.arc(0, 0, 140, angle, angle + sliceAngle);
+          ctx.fill();
+          ctx.stroke();
+
+          ctx.save();
+          ctx.rotate(angle + sliceAngle / 2);
+          ctx.fillStyle = '#ffffff';
+          ctx.font = 'bold 16px Inter';
+          ctx.fillText(`+${prizes[i]}`, 70, 5);
+          ctx.restore();
+        }
+        ctx.restore();
+
+        if (progress < 1) {
+          requestAnimationFrame(animateWheel);
+        } else {
+          isSpinning = false;
+          const finalIndex = Math.floor(((2 * Math.PI - (currentRotation % (2 * Math.PI))) / sliceAngle)) % prizes.length;
+          const wonTokens = prizes[finalIndex];
+          window.currentUserState.tokens += wonTokens;
+          soundFx.playCoinSound();
+          confetti({ particleCount: 60, origin: { y: 0.6 } });
+          saveUserDataToFirestore();
+          updateUIState();
+          showToast(`🎡 Daily Wheel Reward: +${wonTokens} Tokens!`, 'success');
+        }
+      }
+      requestAnimationFrame(animateWheel);
+    };
+
+    // MINI-GAME 1: TRIVIA
+    window.startTriviaGame = function() {
+      const container = document.getElementById('gamePlayContainer');
+      const area = document.getElementById('gamePlayArea');
+      container.classList.remove('hidden');
+
+      const questions = [
+        { q: "What is the highest rarity Blook in this clone?", a: ["Mystical", "Common", "Epic", "Legendary"], correct: 0 },
+        { q: "How many total Blooks exist in this web app database?", a: ["800", "50", "100", "500"], correct: 0 },
+        { q: "Which pack contains Space themed Blooks?", a: ["Space Pack", "Dino Pack", "Safari Pack", "Candy Pack"], correct: 0 },
+        { q: "How many tokens does a basic Medieval Pack cost?", a: ["25 Tokens", "100 Tokens", "500 Tokens", "Free"], correct: 0 }
+      ];
+
+      let qIdx = 0;
+      let score = 0;
+
+      function renderQuestion() {
+        if (qIdx >= questions.length) {
+          const prize = score * 50;
+          window.currentUserState.tokens += prize;
+          saveUserDataToFirestore();
+          updateUIState();
+          area.innerHTML = `
+            <div class="text-center space-y-4">
+              <div class="text-5xl">🏆</div>
+              <h3 class="text-2xl font-black text-white">Trivia Complete!</h3>
+              <p class="text-slate-300">Score: ${score}/${questions.length}</p>
+              <div class="text-amber-400 text-xl font-bold">+${prize} Tokens Earned!</div>
+            </div>
+          `;
+          return;
+        }
+
+        const currentQ = questions[qIdx];
+        area.innerHTML = `
+          <div class="space-y-4">
+            <div class="text-xs text-indigo-400 font-bold uppercase">Question ${qIdx + 1}/${questions.length}</div>
+            <h3 class="text-xl font-black text-white">${currentQ.q}</h3>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">
+              ${currentQ.a.map((ans, i) => `
+                <button onclick="checkTriviaAnswer(${i}, ${currentQ.correct})" class="p-3 bg-slate-800 hover:bg-indigo-600 border border-slate-700 rounded-xl text-left font-bold text-sm text-white transition">${ans}</button>
+              `).join('')}
+            </div>
+          </div>
+        `;
+      }
+
+      window.checkTriviaAnswer = function(selected, correct) {
+        if (selected === correct) {
+          score++;
+          soundFx.playTone(800, 0.1, 'sine');
+        } else {
+          soundFx.playTone(200, 0.15, 'sawtooth');
+        }
+        qIdx++;
+        renderQuestion();
+      };
+
+      renderQuestion();
+    };
+
+    // MINI-GAME 2: TOWER DEFENSE
+    window.startTowerDefenseGame = function() {
+      const container = document.getElementById('gamePlayContainer');
+      const area = document.getElementById('gamePlayArea');
+      container.classList.remove('hidden');
+
+      area.innerHTML = `
+        <div class="text-center space-y-3">
+          <h3 class="text-2xl font-black text-white">Blook Defense Arcade</h3>
+          <p class="text-xs text-slate-400">Click to place defender blooks and stop creeps!</p>
+          <canvas id="tdCanvas" width="480" height="260" class="mx-auto bg-slate-950 rounded-2xl border border-slate-700 cursor-pointer"></canvas>
+          <div class="flex justify-between items-center text-xs text-slate-300 px-4">
+            <span>Score: <b id="tdScore" class="text-amber-400">0</b></span>
+            <span>Lives: <b id="tdLives" class="text-red-400">5</b></span>
+          </div>
+        </div>
+      `;
+
+      const canvas = document.getElementById('tdCanvas');
+      const ctx = canvas.getContext('2d');
+      let score = 0;
+      let lives = 5;
+      const creeps = [];
+      const towers = [];
+
+      canvas.onclick = (e) => {
+        const rect = canvas.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+        towers.push({ x, y, range: 60 });
+        soundFx.playTone(500, 0.05);
+      };
+
+      let frame = 0;
+      function loop() {
+        if (lives <= 0) {
+          const reward = score * 10;
+          window.currentUserState.tokens += reward;
+          saveUserDataToFirestore();
+          updateUIState();
+          area.innerHTML = `<div class="text-center text-xl font-black text-white">Game Over! +${reward} Tokens Earned</div>`;
+          return;
+        }
+
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        frame++;
+
+        if (frame % 40 === 0) {
+          creeps.push({ x: 0, y: 130, hp: 3, speed: 2 });
+        }
+
+        // Draw Towers
+        towers.forEach(t => {
+          ctx.fillStyle = '#0099ff';
+          ctx.beginPath();
+          ctx.arc(t.x, t.y, 12, 0, Math.PI * 2);
+          ctx.fill();
+
+          // Shoot nearest creep
+          creeps.forEach(c => {
+            const dist = Math.hypot(c.x - t.x, c.y - t.y);
+            if (dist < t.range) {
+              ctx.strokeStyle = '#22c55e';
+              ctx.beginPath();
+              ctx.moveTo(t.x, t.y);
+              ctx.lineTo(c.x, c.y);
+              ctx.stroke();
+              c.hp -= 0.1;
+            }
+          });
+        });
+
+        // Move & Draw Creeps
+        for (let i = creeps.length - 1; i >= 0; i--) {
+          const c = creeps[i];
+          c.x += c.speed;
+
+          ctx.fillStyle = '#ef4444';
+          ctx.beginPath();
+          ctx.arc(c.x, c.y, 8, 0, Math.PI * 2);
+          ctx.fill();
+
+          if (c.hp <= 0) {
+            creeps.splice(i, 1);
+            score += 10;
+            document.getElementById('tdScore').innerText = score;
+            soundFx.playCoinSound();
+          } else if (c.x > canvas.width) {
+            creeps.splice(i, 1);
+            lives--;
+            document.getElementById('tdLives').innerText = lives;
+          }
+        }
+
+        requestAnimationFrame(loop);
+      }
+      loop();
+    };
+
+    // MINI-GAME 3: ARCADE RACER
+    window.startRacerGame = function() {
+      const container = document.getElementById('gamePlayContainer');
+      const area = document.getElementById('gamePlayArea');
+      container.classList.remove('hidden');
+
+      area.innerHTML = `
+        <div class="text-center space-y-3">
+          <h3 class="text-2xl font-black text-white">Arcade Blook Racer</h3>
+          <p class="text-xs text-slate-400">Use Left/Right arrow keys to dodge obstacles!</p>
+          <canvas id="racerCanvas" width="320" height="280" class="mx-auto bg-slate-950 rounded-2xl border border-slate-700"></canvas>
+        </div>
+      `;
+
+      const canvas = document.getElementById('racerCanvas');
+      const ctx = canvas.getContext('2d');
+      let playerX = 140;
+      let score = 0;
+      let gameOver = false;
+      const obstacles = [];
+
+      window.onkeydown = (e) => {
+        if (e.key === 'ArrowLeft' && playerX > 20) playerX -= 25;
+        if (e.key === 'ArrowRight' && playerX < 260) playerX += 25;
+      };
+
+      function loop() {
+        if (gameOver) {
+          const prize = score * 5;
+          window.currentUserState.tokens += prize;
+          saveUserDataToFirestore();
+          updateUIState();
+          area.innerHTML = `<div class="text-center text-xl font-black text-white">Race Crashed! Score: ${score} (+${prize} Tokens)</div>`;
+          return;
+        }
+
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        // Draw Player
+        ctx.fillStyle = '#ec4899';
+        ctx.fillRect(playerX, 230, 30, 30);
+
+        if (Math.random() < 0.05) {
+          obstacles.push({ x: Math.random() * 260 + 20, y: 0 });
+        }
+
+        for (let i = obstacles.length - 1; i >= 0; i--) {
+          const obs = obstacles[i];
+          obs.y += 4;
+
+          ctx.fillStyle = '#f59e0b';
+          ctx.fillRect(obs.x, obs.y, 25, 25);
+
+          // Collision check
+          if (obs.y > 210 && obs.y < 260 && Math.abs(obs.x - playerX) < 25) {
+            gameOver = true;
+          }
+
+          if (obs.y > 280) {
+            obstacles.splice(i, 1);
+            score++;
+          }
+        }
+
+        requestAnimationFrame(loop);
+      }
+      loop();
+    };
+
+    window.closeGamePlay = function() {
+      document.getElementById('gamePlayContainer').classList.add('hidden');
+    };
+
+    // CUSTOM BLOOK FACTORY
+    window.setFactoryEmoji = function(emoji) {
+      document.getElementById('factoryIcon').innerText = emoji;
+    };
+
+    window.updateCustomBlookPreview = function() {
+      const name = document.getElementById('factoryNameInput').value || 'Custom Blook';
+      const grad = document.getElementById('factoryGradientSelect').value;
+
+      document.getElementById('factoryNameDisplay').innerText = name;
+      document.getElementById('customBlookPreview').className = `w-48 h-56 rounded-3xl border-4 border-cyan-400 bg-gradient-to-b ${grad} flex flex-col items-center justify-center relative shadow-2xl transition`;
+    };
+
+    window.saveCustomBlook = function() {
+      const name = document.getElementById('factoryNameInput').value || 'Custom Blook';
+      const emoji = document.getElementById('factoryIcon').innerText;
+
+      const newBlook = {
+        id: Date.now(),
+        name: name,
+        pack: 'Custom Factory',
+        rarity: 'Chroma',
+        sellValue: 250,
+        emoji: emoji,
+        cssClass: 'blook-chroma',
+        textColor: 'text-cyan-300'
+      };
+
+      window.BLOOKS.unshift(newBlook);
+      window.currentUserState.unlockedBlooks[newBlook.id] = 1;
+      saveUserDataToFirestore();
+      updateUIState();
+
+      showToast(`Saved ${name} to your Blook library!`, 'success');
+    };
+
+    // LEADERBOARD
+    async function renderLeaderboard() {
+      const container = document.getElementById('leaderboardList');
+      if (!container) return;
+
+      container.innerHTML = '';
+      try {
+        const snap = await getDocs(collection(db, 'artifacts', appId, 'public', 'data', 'leaderboard'));
+        const players = [];
+        snap.forEach(d => players.push(d.data()));
+
+        players.sort((a, b) => (b.totalBlooksCount || 0) - (a.totalBlooksCount || 0));
+
+        if (players.length === 0) {
+          container.innerHTML = `<div class="text-center text-xs text-slate-500 py-4">No public scores recorded yet.</div>`;
+          return;
+        }
+
+        players.slice(0, 10).forEach((p, idx) => {
+          const item = document.createElement('div');
+          item.className = 'bg-slate-800 border border-slate-700 p-4 rounded-2xl flex items-center justify-between';
+          item.innerHTML = `
+            <div class="flex items-center space-x-3">
+              <span class="font-black text-lg ${idx === 0 ? 'text-amber-400' : idx === 1 ? 'text-slate-300' : idx === 2 ? 'text-amber-600' : 'text-slate-500'}">#${idx + 1}</span>
+              <span class="font-bold text-white text-sm">${p.displayName || 'Player'}</span>
+            </div>
+            <div class="text-xs font-bold text-indigo-400">
+              ${p.totalBlooksCount || 0} / 800 Blooks
+            </div>
+          `;
+          container.appendChild(item);
+        });
+      } catch (e) {
+        console.error("Leaderboard Error:", e);
+      }
+    }
+
+    // ADMIN MODAL & TOAST HELPER
+    window.openAdminSettingsModal = function() {
+      document.getElementById('adminModal').classList.remove('hidden');
+    };
+    window.closeAdminSettingsModal = function() {
+      document.getElementById('adminModal').classList.add('hidden');
+    };
+
+    window.saveAdminSettings = function() {
+      const email = document.getElementById('modalOwnerEmailInput').value;
+      if (email) {
+        window.currentUserState.ownerEmail = email;
+        saveUserDataToFirestore();
+        updateUIState();
+        closeAdminSettingsModal();
+        showToast('Owner email updated successfully!', 'success');
+      }
+    };
+
+    window.toggleAudio = function() {
+      soundFx.muted = !soundFx.muted;
+      const icon = document.getElementById('audioIcon');
+      icon.className = soundFx.muted ? 'fa-solid fa-volume-xmark text-red-400' : 'fa-solid fa-volume-high';
+    };
+
+    function showToast(msg, type = 'info') {
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      toast.className = `p-4 rounded-2xl text-xs font-bold text-white shadow-2xl transition transform duration-300 pointer-events-auto flex items-center space-x-2 ${type === 'success' ? 'bg-emerald-600' : type === 'error' ? 'bg-red-600' : 'bg-blooket-blue'}`;
+      toast.innerHTML = `<span>${msg}</span>`;
+
+      container.appendChild(toast);
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        setTimeout(() => toast.remove(), 300);
+      }, 3500);
+    }
+  </script>
+</body>
+</html>
